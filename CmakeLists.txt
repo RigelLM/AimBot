@@ -15,6 +15,7 @@ add_library(aimbot_core STATIC
   "${CMAKE_SOURCE_DIR}/src/vision/HsvMasker.cpp"
   "${CMAKE_SOURCE_DIR}/src/vision/ContourDetector.cpp"
   "${CMAKE_SOURCE_DIR}/src/viz/OverlayRenderer.cpp"
+  "${CMAKE_SOURCE_DIR}/src/cursor/CursorAssist.cpp"
 )
 
 target_include_directories(aimbot_core PUBLIC
