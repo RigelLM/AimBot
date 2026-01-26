@@ -26,7 +26,7 @@ struct PIDAxis {
         double integralCandidate = integral + e * dt;
 
         double uUnsat = kp * e + ki * integralCandidate + kd * deriv;
-        double u = std::max(outMin, std::min(uUnsat, outMax));
+        double u = (std::max)(outMin, (std::min)(uUnsat, outMax));
 
         bool saturated = (u != uUnsat);
         bool pushingFurther =
@@ -34,7 +34,7 @@ struct PIDAxis {
             (u == outMin && e < 0);
 
         if (!(saturated && pushingFurther)) {
-            integral = std::max(iMin, std::min(integralCandidate, iMax));
+            integral = (std::max)(iMin, (std::min)(integralCandidate, iMax));
         }
 
         prevError = e;
