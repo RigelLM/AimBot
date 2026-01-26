@@ -9,7 +9,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 set(OpenCV_DIR "${CMAKE_SOURCE_DIR}/vendor/opencv/build")
 find_package(OpenCV REQUIRED CONFIG)
 
-# ---------------- Core library: capture + vision + viz ----------------
+# ---------------- Core library: capture + vision + viz + cursor----------------
 add_library(aimbot_core STATIC
   "${CMAKE_SOURCE_DIR}/src/capture/DxgiDesktopDuplicationSource.cpp"
   "${CMAKE_SOURCE_DIR}/src/vision/HsvMasker.cpp"
@@ -39,12 +39,21 @@ add_executable(${PROJECT_NAME}
 target_link_libraries(${PROJECT_NAME} PRIVATE aimbot_core)
 
 # ---------------- Copy OpenCV DLLs ----------------
-if(WIN32)
-  set(OPENCV_BIN_DIR "${CMAKE_SOURCE_DIR}/vendor/opencv/build/x64/vc16/bin")
+function(copy_opencv_dlls_to_target target_name)
+  if(WIN32)
+    set(OPENCV_BIN_DIR "${CMAKE_SOURCE_DIR}/vendor/opencv/build/x64/vc16/bin")
+    add_custom_command(TARGET ${target_name} POST_BUILD
+      COMMAND ${CMAKE_COMMAND} -E copy_directory
+        "${OPENCV_BIN_DIR}"
+        "$<TARGET_FILE_DIR:${target_name}>"
+    )
+  endif()
+endfunction()
 
-  add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_directory
-      "${OPENCV_BIN_DIR}"
-      "$<TARGET_FILE_DIR:${PROJECT_NAME}>"
-  )
+copy_opencv_dlls_to_target(${PROJECT_NAME})
+
+option(BUILD_EXAMPLES "Build quick experimental executables" ON)
+
+if(BUILD_EXAMPLES)
+    add_subdirectory(examples)
 endif()
