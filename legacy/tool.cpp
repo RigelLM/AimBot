@@ -1,5 +1,5 @@
-#include "include/tool.h"
-#include "include/pid.h"
+#include "tool.h"
+#include "pid.h"
 
 #include <cmath>
 #include <limits>

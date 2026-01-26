@@ -1,0 +1,33 @@
+﻿{
+  "version": 3,
+  "configurePresets": [
+    {
+      "name": "vs2026-v142-x64",
+      "displayName": "VS2026 + MSVC v142 (vc16) + x64",
+      "generator": "Visual Studio 17 2022",
+      "architecture": "x64",
+      "toolset": "v142",
+      "binaryDir": "${sourceDir}/build_vs",
+      "cacheVariables": {
+        "CMAKE_CONFIGURATION_TYPES": "Debug;Release;Dist"
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "build-debug",
+      "configurePreset": "vs2026-v142-x64",
+      "configuration": "Debug"
+    },
+    {
+      "name": "build-release",
+      "configurePreset": "vs2026-v142-x64",
+      "configuration": "Release"
+    },
+    {
+      "name": "build-dist",
+      "configurePreset": "vs2026-v142-x64",
+      "configuration": "Dist"
+    }
+  ]
+}

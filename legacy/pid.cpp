@@ -1,4 +1,4 @@
-#include "include/pid.h"
+#include "pid.h"
 
 void PIDController::updatePosition(POINT &current, const POINT &target, double dt) {
     int errorX = target.x - current.x;

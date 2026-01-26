@@ -1,17 +1,49 @@
-cmake_minimum_required(VERSION 3.10)
-
-project(aimlab)
+cmake_minimum_required(VERSION 3.20)
+project(aimbot LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(OpenCV_DIR $ENV{OpenCV_DIR})
+set(CMAKE_CXX_EXTENSIONS OFF)
 
-find_package(OpenCV REQUIRED)
+# ---------------- OpenCV ----------------
+set(OpenCV_DIR "${CMAKE_SOURCE_DIR}/vendor/opencv/build")
+find_package(OpenCV REQUIRED CONFIG)
 
-include_directories(${OpenCV_INCLUDE_DIRS} ${PROJECT_SOURCE_DIR})
+# ---------------- Core library: capture + vision + viz ----------------
+add_library(aimbot_core STATIC
+  "${CMAKE_SOURCE_DIR}/src/capture/DxgiDesktopDuplicationSource.cpp"
+  "${CMAKE_SOURCE_DIR}/src/vision/HsvMasker.cpp"
+  "${CMAKE_SOURCE_DIR}/src/vision/ContourDetector.cpp"
+  "${CMAKE_SOURCE_DIR}/src/viz/OverlayRenderer.cpp"
+)
 
-file(GLOB SOURCES ${PROJECT_SOURCE_DIR}/src/*.cpp)
+target_include_directories(aimbot_core PUBLIC
+  "${CMAKE_SOURCE_DIR}/include"
+  ${OpenCV_INCLUDE_DIRS}
+)
 
-add_executable(${PROJECT_NAME} ${SOURCES})
+target_link_libraries(aimbot_core PUBLIC
+  ${OpenCV_LIBS}
+)
 
-target_link_libraries(${PROJECT_NAME} ${OpenCV_LIBS} d3d11 dxgi)
+if (WIN32)
+  target_link_libraries(aimbot_core PUBLIC d3d11 dxgi)
+endif()
+
+# ---------------- App executable: main only ----------------
+add_executable(${PROJECT_NAME}
+  "${CMAKE_SOURCE_DIR}/src/app/main.cpp"
+)
+
+target_link_libraries(${PROJECT_NAME} PRIVATE aimbot_core)
+
+# ---------------- Copy OpenCV DLLs ----------------
+if(WIN32)
+  set(OPENCV_BIN_DIR "${CMAKE_SOURCE_DIR}/vendor/opencv/build/x64/vc16/bin")
+
+  add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+      "${OPENCV_BIN_DIR}"
+      "$<TARGET_FILE_DIR:${PROJECT_NAME}>"
+  )
+endif()
