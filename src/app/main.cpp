@@ -1,5 +1,7 @@
 #include <chrono>
 #include <iostream>
+#include <limits>
+#include <cmath>
 
 #include <opencv2/opencv.hpp>
 
@@ -63,30 +65,6 @@ static bool keyPressedEdge(int vk, bool& prevDown) {
     bool pressed = down && !prevDown;
     prevDown = down;
     return pressed;
-}
-
-static int pickNearestToCursor(const std::vector<Detection>& dets, int mx, int my) {
-    if (dets.empty()) return -1;
-
-    int bestIdx = -1;
-    double bestD2 = std::numeric_limits<double>::infinity();
-
-    for (int i = 0; i < (int)dets.size(); ++i) {
-        const auto& d = dets[i];
-        double dx = d.center.x - mx;
-        double dy = d.center.y - my;
-        double d2 = dx * dx + dy * dy;
-
-        // 你也可以加入一些 gating：比如 area 太小/置信度太低就跳过
-        // if (d.area < 1200) continue;
-        // if (d.confidence < 0.2f) continue;
-
-        if (d2 < bestD2) {
-            bestD2 = d2;
-            bestIdx = i;
-        }
-    }
-    return bestIdx;
 }
 
 int main() {
@@ -281,6 +259,9 @@ int main() {
         // Show windows
         cv::imshow("Mask", mask);
         cv::imshow("Screen Capture", screen);
+
+        // Pump OpenCV window events
+		cv::waitKey(1);
     }
 
     cv::destroyAllWindows();
