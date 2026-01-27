@@ -32,6 +32,8 @@
 #include "aimbot/cursor/CursorAssist.h"
 #include "aimbot/cursor/Win32CursorBackend.h"
 
+#include "aimbot/app/LoadAppConfig.h"
+
 // Try to associate current detections with the previously locked target based on center proximity.
 //
 // dets       : detections in the current frame
@@ -99,6 +101,8 @@ static bool keyPressedEdge(int vk, bool& prevDown) {
 }
 
 int main() {
+	auto jsoncfg = LoadAppConfigOrDefault("config/app.json");
+
     // Step1: Frame source (DXGI Desktop Duplication)
     DxgiDesktopDuplicationSource source;
 
@@ -110,10 +114,12 @@ int main() {
     cfg.morphOpen = 0;      // keep 0 for equivalent behavior
     cfg.morphClose = 0;
 
-    HsvMasker masker(cfg);
+    //HsvMasker masker(cfg);
+    HsvMasker masker(jsoncfg.hsv);
 
     // Step3: Contour-based detector operating on the binary mask.
-    ContourDetector detector(cfg);
+    //ContourDetector detector(cfg);
+    ContourDetector detector(jsoncfg.hsv);
 
     // Step4: Overlay renderer for visualization (boxes/centers + latency text).
     OverlayStyle style;

@@ -20,6 +20,7 @@ add_library(aimbot_core STATIC
 
 target_include_directories(aimbot_core PUBLIC
   "${CMAKE_SOURCE_DIR}/include"
+  "${CMAKE_SOURCE_DIR}/vendor/"
   ${OpenCV_INCLUDE_DIRS}
 )
 
@@ -50,7 +51,17 @@ function(copy_opencv_dlls_to_target target_name)
   endif()
 endfunction()
 
+# ---------------- Copy Config files ----------------
+function(copy_config_files_to_target target_name)
+    add_custom_command(TARGET ${target_name} POST_BUILD
+      COMMAND ${CMAKE_COMMAND} -E copy_directory
+        "${CMAKE_SOURCE_DIR}/config"
+        "$<TARGET_FILE_DIR:${target_name}>/config"
+    )
+endfunction()
+
 copy_opencv_dlls_to_target(${PROJECT_NAME})
+copy_config_files_to_target(${PROJECT_NAME})
 
 option(BUILD_EXAMPLES "Build quick experimental executables" ON)
 

@@ -1,0 +1,17 @@
+{
+  "capture": {
+    "offset_x": 0,
+    "offset_y": 0
+  },
+  "lock": {
+    "match_radius": 80.0,
+    "lost_frames_to_unlock": 6
+  },
+  "hsv": {
+    "lower": [ 82, 199, 118 ],
+    "upper": [ 97, 255, 255 ],
+    "minArea": 1600,
+    "morphOpen": 0,
+    "morphClose": 0
+  }
+}
