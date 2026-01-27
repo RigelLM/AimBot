@@ -1,50 +1,82 @@
+﻿// OverlayRenderer.cpp
+// Visualization helpers for drawing detection results and simple performance metrics.
+//
+// What this file does:
+// - Build short text labels for detections (index / confidence / area) depending on style flags
+// - Draw bounding boxes and center markers on a BGR frame
+// - Draw latency and FPS text overlays
+//
+// Intended use:
+// - Debugging / demo visualization while tuning HSV thresholds, contour filters, PID, etc.
+// - Not performance-critical, but keeps allocations minimal and formatting simple.
+
 #include "aimbot/viz/OverlayRenderer.h"
+
 #include <cstdio>     // std::snprintf
 #include <algorithm>  // std::max
 
+// Compose the per-detection label text based on OverlayStyle toggles.
+// Examples:
+//   "#0 conf=0.73 area=5421"
+//   "conf=0.73"
+//   "area=5421"
+// Returns an empty string if all label toggles are disabled.
 std::string OverlayRenderer::makeLabel(const Detection& d, int index) const {
     char buf[128];
 
-    // 按需组合信息（尽量别太长）
-    // 例：#0 conf=0.73 area=5421
+    // Combine fields as requested while keeping the string short.
     if (style_.showIndex && style_.showConfidence && style_.showArea) {
         std::snprintf(buf, sizeof(buf), "#%d conf=%.2f area=%.0f", index, d.confidence, d.area);
-    } else if (style_.showIndex && style_.showConfidence) {
+    }
+    else if (style_.showIndex && style_.showConfidence) {
         std::snprintf(buf, sizeof(buf), "#%d conf=%.2f", index, d.confidence);
-    } else if (style_.showIndex && style_.showArea) {
+    }
+    else if (style_.showIndex && style_.showArea) {
         std::snprintf(buf, sizeof(buf), "#%d area=%.0f", index, d.area);
-    } else if (style_.showConfidence && style_.showArea) {
+    }
+    else if (style_.showConfidence && style_.showArea) {
         std::snprintf(buf, sizeof(buf), "conf=%.2f area=%.0f", d.confidence, d.area);
-    } else if (style_.showConfidence) {
+    }
+    else if (style_.showConfidence) {
         std::snprintf(buf, sizeof(buf), "conf=%.2f", d.confidence);
-    } else if (style_.showArea) {
+    }
+    else if (style_.showArea) {
         std::snprintf(buf, sizeof(buf), "area=%.0f", d.area);
-    } else if (style_.showIndex) {
+    }
+    else if (style_.showIndex) {
         std::snprintf(buf, sizeof(buf), "#%d", index);
-    } else {
+    }
+    else {
+        // Nothing to show.
         return {};
     }
 
     return std::string(buf);
 }
 
+// Draw bounding boxes, center markers, and optional labels for all detections.
+// bgr: image to draw on (BGR cv::Mat), modified in-place
+// dets: list of detections to visualize
 void OverlayRenderer::drawDetections(cv::Mat& bgr, const std::vector<Detection>& dets) const {
     if (bgr.empty()) return;
 
     for (int i = 0; i < static_cast<int>(dets.size()); ++i) {
         const auto& d = dets[i];
 
-        // bbox
+        // Draw bounding box (green).
         cv::rectangle(bgr, d.bbox, cv::Scalar(0, 255, 0), style_.boxThickness);
 
-        // center
+        // Draw center marker (blue).
         cv::circle(bgr, d.center, style_.centerRadius, cv::Scalar(255, 0, 0), style_.centerThickness);
 
-        // label（放在 bbox 左上角上方，避免挡住框）
+        // Draw label near the top-left of the bbox.
+        // Place it slightly above the box to avoid covering content inside.
         std::string label = makeLabel(d, i);
         if (!label.empty()) {
             cv::Point org = d.bbox.tl() + cv::Point(0, -6);
-            if (org.y < 12) org.y = d.bbox.y + 12; // 防止文字跑出画面顶部
+
+            // Prevent the text from going above the image boundary.
+            if (org.y < 12) org.y = d.bbox.y + 12;
 
             cv::putText(
                 bgr, label, org,
@@ -55,6 +87,8 @@ void OverlayRenderer::drawDetections(cv::Mat& bgr, const std::vector<Detection>&
     }
 }
 
+// Draw latency text (ms) at style_.latencyPos.
+// latencyMs: measured time per frame or per pipeline iteration, in milliseconds.
 void OverlayRenderer::drawLatency(cv::Mat& bgr, double latencyMs) const {
     if (bgr.empty()) return;
 
@@ -68,6 +102,8 @@ void OverlayRenderer::drawLatency(cv::Mat& bgr, double latencyMs) const {
     );
 }
 
+// Draw FPS text at style_.fpsPos.
+// fps: current frames per second estimate.
 void OverlayRenderer::drawFPS(cv::Mat& bgr, double fps) const {
     if (bgr.empty()) return;
 
