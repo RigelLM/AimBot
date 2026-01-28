@@ -61,6 +61,16 @@
     - 默认拷贝目录：`vendor/opencv/build/x64/vc16/bin`
     - 如果你用的是别的 OpenCV 路径/版本，需要同步修改 `OPENCV_BIN_DIR`
 
+- **nlohmann/json（header-only）**
+  - 本项目以单头文件方式引入：`vendor/nlohmann/json.hpp`
+  - 不需要额外编译/链接步骤，只需要保证 include path 覆盖到 `vendor/`（或显式包含该文件）
+  - 使用示例：
+    ```cpp
+    #include "vendor/nlohmann/json.hpp"
+    // 或（如果已把 vendor 加入 include dirs）
+    #include <nlohmann/json.hpp>
+    ```
+
 ### 额外说明
 - Windows 下 `aimbot_core` 会链接：
   - `d3d11`, `dxgi`
