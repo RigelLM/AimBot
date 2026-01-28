@@ -5,7 +5,7 @@
   },
   "lock": {
     "match_radius": 80.0,
-    "lost_frames_to_unlock": 6
+    "lost_frames_to_unlock": 5
   },
   "hsv": {
     "lower": [ 82, 199, 118 ],
@@ -16,9 +16,9 @@
   },
   "cursor": {
     "tick_hz": 240,
-    "deadzone_px": 2,
+    "deadzone_px": 1,
     "auto_click": true,
-    "click_dist_px": 30.0,
+    "click_dist_px": 40.0,
     "dwell_ms": 10,
     "cooldown_ms": 10,
     "min_sleep_us": 250,
@@ -27,8 +27,8 @@
         "kp": 0.35,
         "ki": 0.0,
         "kd": 0.18,
-        "outMin": -100,
-        "outMax": 100,
+        "outMin": -400,
+        "outMax": 400,
         "iMin": -2000,
         "iMax": 2000,
         "dAlpha": 1.0
@@ -37,8 +37,8 @@
         "kp": 0.35,
         "ki": 0.0,
         "kd": 0.18,
-        "outMin": -100,
-        "outMax": 100,
+        "outMin": -400,
+        "outMax": 400,
         "iMin": -2000,
         "iMax": 2000,
         "dAlpha": 1.0

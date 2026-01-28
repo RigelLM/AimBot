@@ -178,12 +178,9 @@ void CursorAssistController::threadMain() {
         if (std::abs(ey) < cfgLocal.deadzone_px) ey = 0;
 
         // PID output: desired relative movement per tick (in pixels).
-        /*double ux = cfgLocal.pid.x.step((double)ex, dt);
-        double uy = cfgLocal.pid.y.step((double)ey, dt);*/
         double ux, uy;
         {
             std::lock_guard<std::mutex> lk(mtx_);
-            // 注意：pidState_ 保存了状态，必须在锁内更新
             ux = pidState_.x.step((double)ex, dt);
             uy = pidState_.y.step((double)ey, dt);
         }
