@@ -14,7 +14,7 @@ namespace aimbot::gui {
         Dx11MatTexture() = default;
 
         // Update GPU texture with a cv::Mat.
-        // Accepts CV_8UC3 (BGR) or CV_8UC4 (BGRA).
+        // Accepts CV_8UC1 (GRAY), CV_8UC3 (BGR) or CV_8UC4 (BGRA).
         // Returns true if updated successfully.
         bool update(ID3D11Device* device, ID3D11DeviceContext* ctx, const cv::Mat& mat);
 

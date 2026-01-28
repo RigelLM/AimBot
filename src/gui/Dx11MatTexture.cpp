@@ -11,7 +11,7 @@ namespace aimbot::gui {
         if (!device || !ctx) return false;
         if (mat.empty()) return false;
 
-        if (mat.type() != CV_8UC3 && mat.type() != CV_8UC4) {
+        if (mat.type() != CV_8UC1 && mat.type() != CV_8UC3 && mat.type() != CV_8UC4) {
             return false; // unsupported
         }
 
@@ -25,10 +25,16 @@ namespace aimbot::gui {
             // assume BGRA already
             uploadBGRA(ctx, mat);
         }
-        else {
+        else if (mat.type() == CV_8UC3) {
             // BGR -> BGRA
             bgra_.create(h, w, CV_8UC4);
             cv::cvtColor(mat, bgra_, cv::COLOR_BGR2BGRA);
+            uploadBGRA(ctx, bgra_);
+        }
+        else {
+            // GRAY -> BGRA (mask)
+            bgra_.create(h, w, CV_8UC4);
+            cv::cvtColor(mat, bgra_, cv::COLOR_GRAY2BGRA);
             uploadBGRA(ctx, bgra_);
         }
 
