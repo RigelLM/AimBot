@@ -1,13 +1,17 @@
-﻿#include "aimbot/gui/ImGuiApp.h"
-
-#include <windows.h>
+﻿#include <windows.h>
 #include <tchar.h>
 #include <d3d11.h>
 #include <dxgi.h>
 
-#include "imgui.h"
-#include "backends/imgui_impl_win32.h"
-#include "backends/imgui_impl_dx11.h"
+#include <opencv2/opencv.hpp>
+
+#include <imgui.h>
+#include <backends/imgui_impl_win32.h>
+#include <backends/imgui_impl_dx11.h>
+
+#include "aimbot/gui/ImGuiApp.h"
+#include "aimbot/gui/Dx11MatTexture.h"
+#include "aimbot/capture/DxgiDesktopDuplicationSource.h"
 
 // Forward declare message handler from imgui_impl_win32.cpp
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
@@ -164,6 +168,12 @@ namespace aimbot::gui {
         ImGui_ImplWin32_Init(hwnd);
         ImGui_ImplDX11_Init(g_pd3dDevice, g_pd3dDeviceContext);
 
+        DxgiDesktopDuplicationSource frameSource;
+        cv::Mat frameBgr;
+
+        Dx11MatTexture screenTex;
+
+
         bool show_demo = true;
 
         // 5) 主循环
@@ -186,12 +196,40 @@ namespace aimbot::gui {
             ImGui::NewFrame();
 
             // --------- 你的 UI 在这里画（先跑 demo） ---------
-            if (show_demo)
-                ImGui::ShowDemoWindow(&show_demo);
+            // 1) Grab frame from desktop (BGR)
+            bool ok = frameSource.grab(frameBgr);
+            if (ok) {
+                // 2) Upload to GPU texture
+                //    (this converts BGR->BGRA internally)
+                screenTex.update(g_pd3dDevice, g_pd3dDeviceContext, frameBgr);
+            }
 
+            // 3) UI
             ImGui::Begin("aimbot");
-            ImGui::Text("Hello from ImGui!");
-            ImGui::Text("Next: replace OpenCV imshow with ImGui::Image");
+            ImGui::Text("Grab: %s", ok ? "OK" : "FAILED");
+
+            if (screenTex.valid()) {
+                // Fit image into available region while keeping aspect ratio
+                ImVec2 avail = ImGui::GetContentRegionAvail();
+                float iw = (float)screenTex.width();
+                float ih = (float)screenTex.height();
+                float scale = 1.0f;
+
+                if (iw > 0 && ih > 0) {
+                    float sx = avail.x / iw;
+                    float sy = avail.y / ih;
+                    scale = (sx < sy) ? sx : sy;
+                    if (scale > 1.0f) scale = 1.0f; // don't upscale (optional)
+                }
+
+                ImGui::Image(
+                    (ImTextureID)screenTex.imTextureID(),
+                    ImVec2(iw * scale, ih * scale)
+                );
+            }
+            else {
+                ImGui::Text("No texture yet.");
+            }
             ImGui::End();
             // -----------------------------------------------
 
