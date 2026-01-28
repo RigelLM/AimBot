@@ -1,4 +1,4 @@
-{
+﻿{
   "capture": {
     "offset_x": 0,
     "offset_y": 0
@@ -17,7 +17,7 @@
   "cursor": {
     "tick_hz": 240,
     "deadzone_px": 2,
-    "auto_click": false,
+    "auto_click": true,
     "click_dist_px": 16.0,
     "dwell_ms": 150,
     "cooldown_ms": 150,

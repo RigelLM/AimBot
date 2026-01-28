@@ -65,6 +65,7 @@ int main() {
     // Overlay renderer for visualization (boxes/centers + latency text).
     OverlayRenderer overlay(cfg.overlay);
 
+    // TODO: Implement GUI for this app
     // Debug windows.
     cv::namedWindow("Screen Capture", cv::WINDOW_KEEPRATIO);
     cv::namedWindow("Mask", cv::WINDOW_KEEPRATIO);
