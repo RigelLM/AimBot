@@ -13,5 +13,51 @@
     "minArea": 1600,
     "morphOpen": 0,
     "morphClose": 0
+  },
+  "cursor": {
+    "tick_hz": 240,
+    "deadzone_px": 2,
+    "auto_click": false,
+    "click_dist_px": 16.0,
+    "dwell_ms": 150,
+    "cooldown_ms": 150,
+    "min_sleep_us": 500,
+    "pid": {
+      "x": {
+        "kp": 0.28,
+        "ki": 0.0,
+        "kd": 0.07,
+        "outMin": -45,
+        "outMax": 45,
+        "iMin": -2000,
+        "iMax": 2000,
+        "dAlpha": 0.85
+      },
+      "y": {
+        "kp": 0.28,
+        "ki": 0.0,
+        "kd": 0.07,
+        "outMin": -45,
+        "outMax": 45,
+        "iMin": -2000,
+        "iMax": 2000,
+        "dAlpha": 0.85
+      }
+    }
+  },
+  "overlay": {
+    "boxThickness": 2,
+    "centerRadius": 6,
+    "centerThickness": -1,
+
+    "fontScale": 0.6,
+    "fontThickness": 2,
+
+    "latencyPos": [ 10, 30 ],
+    "fpsPos": [ 10, 60 ],
+
+    "showConfidence": false,
+    "showArea": false,
+    "showIndex": false
   }
 }

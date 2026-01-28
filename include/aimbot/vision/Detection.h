@@ -5,6 +5,7 @@
 // Fields are intentionally lightweight so that multiple detections can be returned
 // per frame and scored/sorted by the caller.
 #pragma once
+
 #include <opencv2/opencv.hpp>
 
 struct Detection {

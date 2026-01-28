@@ -1,8 +1,9 @@
 #pragma once
-#include <nlohmann/json.hpp>
 
 #include <fstream>
 #include <string>
+
+#include <nlohmann/json.hpp>
 
 inline bool LoadJsonFile(const std::string& path, nlohmann::json& out, std::string& err) {
     std::ifstream f(path);

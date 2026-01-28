@@ -9,39 +9,13 @@
 // All drawing is done in-place on a BGR OpenCV image (cv::Mat).
 
 #pragma once
-#include "../vision/Detection.h"
-
 #include <vector>
 #include <string>
 
 #include <opencv2/opencv.hpp>
 
-// Style configuration for overlay rendering.
-// All values are in pixel units unless otherwise noted.
-struct OverlayStyle {
-    // Bounding box line thickness.
-    int boxThickness = 2;
-
-    // Radius of the center marker (circle) drawn at Detection.center.
-    int centerRadius = 6;
-
-    // Thickness of the center marker.
-    // -1 means a filled circle in OpenCV.
-    int centerThickness = -1; // -1 = filled
-
-    // Text rendering parameters for cv::putText.
-    double fontScale = 0.6;
-    int fontThickness = 2;
-
-    // On-screen positions for performance text overlays.
-    cv::Point latencyPos{10, 30};
-    cv::Point fpsPos{10, 60};
-
-    // Label content toggles.
-    bool showConfidence = true;
-    bool showArea = false;
-    bool showIndex = false;
-};
+#include "aimbot/vision/Detection.h"
+#include "aimbot/app/AppConfig.h"
 
 class OverlayRenderer {
 public:

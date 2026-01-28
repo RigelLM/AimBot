@@ -24,7 +24,6 @@
 #include <opencv2/opencv.hpp>
 
 #include "aimbot/capture/DxgiDesktopDuplicationSource.h"
-#include "aimbot/vision/HsvConfig.h"
 #include "aimbot/vision/HsvMasker.h"
 #include "aimbot/vision/ContourDetector.h"
 #include "aimbot/viz/OverlayRenderer.h"
@@ -34,6 +33,7 @@
 
 #include "aimbot/app/LoadAppConfig.h"
 
+// TODO: Refactor into a reusable Tracking module
 // Try to associate current detections with the previously locked target based on center proximity.
 //
 // dets       : detections in the current frame
@@ -92,6 +92,7 @@ static int pickNewTarget(const std::vector<Detection>& dets, int mx, int my) {
     return bestIdx;
 }
 
+// TODO: Refactor into a reusable Input system
 // Detect a key press on the rising edge (up -> down) using GetAsyncKeyState.
 static bool keyPressedEdge(int vk, bool& prevDown) {
     bool down = (GetAsyncKeyState(vk) & 0x8000) != 0;
@@ -101,32 +102,18 @@ static bool keyPressedEdge(int vk, bool& prevDown) {
 }
 
 int main() {
-	auto jsoncfg = LoadAppConfigOrDefault("config/app.json");
+	auto cfg = LoadAppConfigOrDefault("config/app.json");
 
-    // Step1: Frame source (DXGI Desktop Duplication)
+    // Frame source (DXGI Desktop Duplication)
     DxgiDesktopDuplicationSource source;
 
-    // Step2: HSV masker config
-    HsvConfig cfg;
-    cfg.lower = cv::Scalar(82, 199, 118);
-    cfg.upper = cv::Scalar(97, 255, 255);
-    cfg.minArea = 1600;
-    cfg.morphOpen = 0;      // keep 0 for equivalent behavior
-    cfg.morphClose = 0;
+    HsvMasker masker(cfg.hsv);
 
-    //HsvMasker masker(cfg);
-    HsvMasker masker(jsoncfg.hsv);
+    // Contour-based detector operating on the binary mask.
+    ContourDetector detector(cfg.hsv);
 
-    // Step3: Contour-based detector operating on the binary mask.
-    //ContourDetector detector(cfg);
-    ContourDetector detector(jsoncfg.hsv);
-
-    // Step4: Overlay renderer for visualization (boxes/centers + latency text).
-    OverlayStyle style;
-    style.showConfidence = true;
-    style.showArea = false;
-    style.showIndex = false;
-    OverlayRenderer overlay(style);
+    // Overlay renderer for visualization (boxes/centers + latency text).
+    OverlayRenderer overlay(cfg.overlay);
 
     // Debug windows.
     cv::namedWindow("Screen Capture", cv::WINDOW_KEEPRATIO);
@@ -140,29 +127,13 @@ int main() {
     Win32CursorBackend backend;
     CursorAssistController controller(backend);
 
-    CursorAssistConfig cconf;
-    cconf.tick_hz = 240;
-    cconf.deadzone_px = 2;
-
-    // Enable dwell click (auto click when cursor stays close enough to target for dwell_ms).
-    cconf.auto_click = true;
-    cconf.click_dist_px = 16.0;  // enter this distance => start dwell timer
-    cconf.dwell_ms = 150;        // stay in range for 150 ms => click
-    cconf.cooldown_ms = 150;     // after clicking, ignore for 150 ms
-
-    // PID initial gains (tunable).
-    cconf.pid.x.kp = 0.28; cconf.pid.x.ki = 0.00; cconf.pid.x.kd = 0.07;
-    cconf.pid.y.kp = 0.28; cconf.pid.y.ki = 0.00; cconf.pid.y.kd = 0.07;
-    cconf.pid.x.outMin = -45; cconf.pid.x.outMax = 45;
-    cconf.pid.y.outMin = -45; cconf.pid.y.outMax = 45;
-    cconf.pid.x.dAlpha = 0.85; cconf.pid.y.dAlpha = 0.85;
-
-    controller.updateConfig(cconf);
+    controller.updateConfig(cfg.cursor);
     controller.start();
     controller.setEnabled(false);
 
     bool assistEnabled = false;
 
+    // TODO: Implement ROI capture
     // If you capture only a region of the screen (ROI), set these to the ROI's
     // top-left corner in screen coordinates. For full-screen capture, keep them at 0.
     const int CAPTURE_OFFSET_X = 0;
@@ -181,8 +152,8 @@ int main() {
     int missingFrames = 0;  // consecutive frames where locked target isn't found
 
     // Lock association parameters (tune to balance stickiness vs wrong associations).
-    const float LOCK_MATCH_RADIUS = 60.0f;  // pixels; larger => more "sticky" but more mismatch risk
-    const int   LOST_FRAMES_TO_UNLOCK = 5;  // frames; larger => more robust to missed detections
+    float lock_match_radius = cfg.lock.match_radius;    // pixels; larger => more "sticky" but more mismatch risk
+	int lost_frames_to_unlock = cfg.lock.lost_frames_to_unlock; // frames; larger => more robust to missed detections
 
     while (true) {
         auto frame_start = std::chrono::high_resolution_clock::now();
@@ -240,7 +211,7 @@ int main() {
 
             if (hasLock) {
                 // 1) Try to find the same locked target in the current detection set.
-                chosen = matchLockedByCenter(dets, lockCenter, LOCK_MATCH_RADIUS);
+                chosen = matchLockedByCenter(dets, lockCenter, lock_match_radius);
 
                 if (chosen >= 0) {
                     // Found: update the lock center and reset missing counter.
@@ -251,7 +222,7 @@ int main() {
                     // Not found: do not switch immediately; count consecutive misses.
                     missingFrames++;
 
-                    if (missingFrames >= LOST_FRAMES_TO_UNLOCK) {
+                    if (missingFrames >= lost_frames_to_unlock) {
                         // Consider it truly gone: drop the lock.
                         hasLock = false;
                         missingFrames = 0;

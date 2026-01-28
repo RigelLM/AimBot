@@ -13,11 +13,11 @@
 // Robustness:
 //   - If AcquireNextFrame fails (device reset / display mode changes), re-init.
 
-#include "aimbot/capture/DxgiDesktopDuplicationSource.h"
-
 #include <stdexcept>
 #include <cstring> // memcpy
 #include <functional>
+
+#include "aimbot/capture/DxgiDesktopDuplicationSource.h"
 
 using Microsoft::WRL::ComPtr;
 

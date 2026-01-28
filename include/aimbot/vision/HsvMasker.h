@@ -13,9 +13,9 @@
 //   masker.run(bgrFrame, mask);
 #pragma once
 
-#include "HsvConfig.h"
-
 #include <opencv2/opencv.hpp>
+
+#include "aimbot/app/AppConfig.h"
 
 class HsvMasker {
 public:

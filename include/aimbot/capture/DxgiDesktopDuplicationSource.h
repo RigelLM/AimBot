@@ -4,11 +4,11 @@
 // then outputs a CPU-accessible BGR cv::Mat for downstream OpenCV processing.
 #pragma once
 
-#include "IFrameSource.h"
-
 #include <wrl/client.h>
 #include <d3d11.h>
 #include <dxgi1_2.h>
+
+#include "IFrameSource.h"
 
 class DxgiDesktopDuplicationSource : public IFrameSource {
 public:
@@ -30,6 +30,7 @@ private:
 
     // CPU-readable staging texture (D3D11_USAGE_STAGING) used to map frame pixels.
     Microsoft::WRL::ComPtr<ID3D11Texture2D> staging_;
+
     // Captured frame dimensions.
     UINT width_= 0;
     UINT height_ = 0;

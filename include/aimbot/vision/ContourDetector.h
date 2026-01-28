@@ -17,12 +17,12 @@
 
 #pragma once
 
-#include "Detection.h"
-#include "HsvConfig.h"
-
 #include <vector>
 
 #include <opencv2/opencv.hpp>
+
+#include "Detection.h"
+#include "aimbot/app/AppConfig.h"
 
 class ContourDetector {
 public:
