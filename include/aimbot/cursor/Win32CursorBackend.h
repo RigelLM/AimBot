@@ -1,4 +1,4 @@
-﻿// capture/cursor/Win32CursorBackend.h
+﻿// cursor/Win32CursorBackend.h
 // Win32 implementation of the cursor backend used by CursorAssistController.
 // Provides:
 //   - Query current cursor position

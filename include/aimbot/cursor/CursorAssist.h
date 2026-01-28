@@ -1,4 +1,4 @@
-﻿// capture/CursorAssist.h
+﻿// cursor/CursorAssist.h
 // PID-based cursor assist controller.
 //
 // Design overview:

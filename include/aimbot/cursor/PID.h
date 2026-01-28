@@ -1,4 +1,19 @@
-﻿#pragma once
+﻿// cursor/PID.h
+// Minimal PID utilities used by the cursor assist controller.
+//
+// Contents:
+// - PIDAxis: single-axis PID with derivative low-pass filtering, output saturation,
+//            integral clamping, and a simple anti-windup rule.
+// - PID2D:   two independent PIDAxis controllers (X/Y).
+// - CursorPoint: integer screen-space point (pixels).
+//
+// Notes on conventions:
+// - e (error) is in pixels.
+// - dt is in seconds.
+// - step() returns a *command* (typically pixels per tick) which is later rounded
+//   to integers for cursor movement.
+// - Output limits (outMin/outMax) act as a per-tick cap on motion magnitude.
+#pragma once
 
 #include <cmath>
 
@@ -61,14 +76,18 @@ struct PIDAxis {
     void reset() { integral = 0; prevError = 0; prevDeriv = 0; }
 };
 
-// Two-axis PID (X and Y share the same structure but independent state).
+// ------------------------------ PID2D ------------------------------
+// Two-axis PID controller: independent X and Y controllers with separate states.
+// Useful for screen-space control where horizontal/vertical dynamics can be tuned separately.
 struct PID2D {
     PIDAxis x;
     PIDAxis y;
     void reset() { x.reset(); y.reset(); }
 };
 
-// Simple integer point in screen pixel coordinates.
+// ------------------------------ CursorPoint ------------------------------
+// Integer cursor point in screen pixel coordinates.
+// Used for targets and cursor measurements.
 struct CursorPoint {
     int x{ 0 };
     int y{ 0 };
