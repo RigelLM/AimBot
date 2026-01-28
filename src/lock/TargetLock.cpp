@@ -1,4 +1,19 @@
-﻿#include "aimbot/lock/TargetLock.h"
+﻿// TargetLock.cpp
+// Implementation of the target lock state machine.
+//
+// Core behavior:
+// - If currently locked:
+//     * Try to match the locked target to a detection in the current frame (LockMatcher).
+//     * If matched: update locked_ and reset lostFrames_.
+//     * If not matched: increment lostFrames_.
+//         - If misses exceed cfg_.lost_frames_to_unlock: unlock.
+//         - Otherwise: remain locked but return std::nullopt (temporarily lost).
+// - If currently unlocked:
+//     * Use the selection strategy (ITargetSelector) to choose a new target.
+//     * If a target is chosen: lock onto it and return its index.
+// - If nothing is chosen/found: return std::nullopt.
+
+#include "aimbot/lock/TargetLock.h"
 #include "aimbot/lock/NearestToAimSelector.h"
 
 namespace aimbot::lock {
