@@ -9,13 +9,16 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 set(OpenCV_DIR "${CMAKE_SOURCE_DIR}/vendor/opencv/build")
 find_package(OpenCV REQUIRED CONFIG)
 
-# ---------------- Core library: capture + vision + viz + cursor----------------
+# ---------------- Core library: capture + vision + viz + cursor + targetlock----------------
 add_library(aimbot_core STATIC
   "${CMAKE_SOURCE_DIR}/src/capture/DxgiDesktopDuplicationSource.cpp"
   "${CMAKE_SOURCE_DIR}/src/vision/HsvMasker.cpp"
   "${CMAKE_SOURCE_DIR}/src/vision/ContourDetector.cpp"
   "${CMAKE_SOURCE_DIR}/src/viz/OverlayRenderer.cpp"
   "${CMAKE_SOURCE_DIR}/src/cursor/CursorAssist.cpp"
+  "${CMAKE_SOURCE_DIR}/src/lock/TargetLock.cpp"
+  "${CMAKE_SOURCE_DIR}/src/lock/LockMatcher.cpp"
+  "${CMAKE_SOURCE_DIR}/src/lock/NearestToAimSelector.cpp"
 )
 
 target_include_directories(aimbot_core PUBLIC

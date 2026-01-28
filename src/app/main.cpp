@@ -31,66 +31,11 @@
 #include "aimbot/cursor/CursorAssist.h"
 #include "aimbot/cursor/Win32CursorBackend.h"
 
+#include "aimbot/lock/TargetLock.h"
+#include "aimbot/lock/NearestToAimSelector.h"
+#include "aimbot/lock/TargetContext.h"
+
 #include "aimbot/app/LoadAppConfig.h"
-
-// TODO: Refactor into a reusable Tracking module
-// Try to associate current detections with the previously locked target based on center proximity.
-//
-// dets       : detections in the current frame
-// prevCenter : locked center from last frame (or last known locked center)
-// radiusPx   : max allowed distance for being considered the same target
-//
-// Returns:
-//   index of the best matching detection in dets, or -1 if no match.
-static int matchLockedByCenter(const std::vector<Detection>& dets,
-    const cv::Point2f& prevCenter,
-    float radiusPx)
-{
-    if (dets.empty()) return -1;
-
-    const float r2 = radiusPx * radiusPx;
-    int best = -1;
-    float bestD2 = (std::numeric_limits<float>::max)();
-
-    for (int i = 0; i < (int)dets.size(); ++i) {
-        float dx = dets[i].center.x - prevCenter.x;
-        float dy = dets[i].center.y - prevCenter.y;
-        float d2 = dx * dx + dy * dy;
-
-        // Pick the closest detection within the association radius.
-        if (d2 <= r2 && d2 < bestD2) {
-            bestD2 = d2;
-            best = i;
-        }
-    }
-    return best; // -1 means no "same target" found this frame.
-}
-
-// Pick a new target when no lock is held.
-// Current policy: choose the detection whose center is closest to the current mouse position
-// (in image coordinates).
-static int pickNewTarget(const std::vector<Detection>& dets, int mx, int my) {
-    if (dets.empty()) return -1;
-
-    int bestIdx = -1;
-    double bestD2 = std::numeric_limits<double>::infinity();
-
-    for (int i = 0; i < (int)dets.size(); ++i) {
-        double dx = dets[i].center.x - mx;
-        double dy = dets[i].center.y - my;
-        double d2 = dx * dx + dy * dy;
-
-        // Optional filters you can enable:
-        // if (dets[i].area < 1600) continue;
-        // if (dets[i].confidence < 0.2f) continue;
-
-        if (d2 < bestD2) {
-            bestD2 = d2;
-            bestIdx = i;
-        }
-    }
-    return bestIdx;
-}
 
 // TODO: Refactor into a reusable Input system
 // Detect a key press on the rising edge (up -> down) using GetAsyncKeyState.
@@ -103,6 +48,11 @@ static bool keyPressedEdge(int vk, bool& prevDown) {
 
 int main() {
 	auto cfg = LoadAppConfigOrDefault("config/app.json");
+
+    aimbot::lock::TargetLock targetLock(
+        cfg.lock,
+        std::make_unique<aimbot::lock::NearestToAimSelector>()
+    );
 
     // Frame source (DXGI Desktop Duplication)
     DxgiDesktopDuplicationSource source;
@@ -146,15 +96,6 @@ int main() {
     // Key edge state for hotkeys.
     bool prevQ = false, prevE = false, prevEsc = false;
 
-    // -------- Lock state --------
-    bool hasLock = false;
-    cv::Point2f lockCenter(0, 0);   // last known center of the locked target
-    int missingFrames = 0;  // consecutive frames where locked target isn't found
-
-    // Lock association parameters (tune to balance stickiness vs wrong associations).
-    float lock_match_radius = cfg.lock.match_radius;    // pixels; larger => more "sticky" but more mismatch risk
-	int lost_frames_to_unlock = cfg.lock.lost_frames_to_unlock; // frames; larger => more robust to missed detections
-
     while (true) {
         auto frame_start = std::chrono::high_resolution_clock::now();
 
@@ -165,7 +106,7 @@ int main() {
             continue;
         }
 
-        // Step2: BGR -> HSV -> inRange => mask
+        // BGR -> HSV -> inRange => mask
         masker.run(screen, mask);
 
         // Detect candidates from mask.
@@ -194,8 +135,7 @@ int main() {
             assistEnabled = false;
             controller.setEnabled(false);
             controller.clearTarget();
-            hasLock = false;
-            missingFrames = 0;
+            targetLock.reset();
         }
 
         // -------- Connect detections to CursorAssist (core logic) --------
@@ -207,48 +147,23 @@ int main() {
             // (If capture is ROI, subtract the ROI offset.)
             int mx_img = cur.x - CAPTURE_OFFSET_X;
             int my_img = cur.y - CAPTURE_OFFSET_Y;
-            int chosen = -1;
 
-            if (hasLock) {
-                // 1) Try to find the same locked target in the current detection set.
-                chosen = matchLockedByCenter(dets, lockCenter, lock_match_radius);
+            aimbot::lock::TargetContext tctx;
+			tctx.aimPointImg = cv::Point2f((float)mx_img, (float)my_img);
+            tctx.dt = 0.0f;
 
-                if (chosen >= 0) {
-                    // Found: update the lock center and reset missing counter.
-                    lockCenter = dets[chosen].center;
-                    missingFrames = 0;
-                }
-                else {
-                    // Not found: do not switch immediately; count consecutive misses.
-                    missingFrames++;
+			auto chosenOpt = targetLock.update(dets, tctx);
 
-                    if (missingFrames >= lost_frames_to_unlock) {
-                        // Consider it truly gone: drop the lock.
-                        hasLock = false;
-                        missingFrames = 0;
-                    }
-                }
-            }
+            if (chosenOpt.has_value()) {
+                int chosen = *chosenOpt;
 
-            if (!hasLock) {
-                // 2) Only when unlocked, pick a brand-new target (closest to cursor).
-                chosen = pickNewTarget(dets, mx_img, my_img);
-
-                if (chosen >= 0) {
-                    hasLock = true;
-                    lockCenter = dets[chosen].center;
-                    missingFrames = 0;
-                }
-            }
-
-            if (hasLock && chosen >= 0) {
-                // 3) Convert the chosen target center back to screen coordinates and send to controller.
+                // Convert image coordinates back to monitor coordinates（ROI offset）
                 int tx = (int)std::lround(dets[chosen].center.x) + CAPTURE_OFFSET_X;
                 int ty = (int)std::lround(dets[chosen].center.y) + CAPTURE_OFFSET_Y;
 
                 controller.setTarget({ tx, ty });
 
-                // Visualization: highlight the locked target.
+                // Visualization: highlight the locked/current target.
                 cv::circle(screen,
                     cv::Point((int)dets[chosen].center.x, (int)dets[chosen].center.y),
                     12, cv::Scalar(0, 255, 255), 2);
@@ -257,16 +172,21 @@ int main() {
                     cv::FONT_HERSHEY_SIMPLEX, 0.6, cv::Scalar(0, 255, 255), 2);
             }
             else {
-                // No valid target: stop tracking this tick.
+				// No available target in this frame：could be temporarily lost (still locked), could also be fully unlocked.
                 controller.clearTarget();
+
+                // Optional：If you want to show“LOST n”
+                // if (targetLock.isLocked()) {
+                //     cv::putText(screen, ("LOST " + std::to_string(targetLock.lostFrames())).c_str(),
+                //         cv::Point(20, 60), cv::FONT_HERSHEY_SIMPLEX, 0.7, cv::Scalar(0, 255, 255), 2);
+                // }
             }
         }
         else
         {
             // Assist disabled: always clear tracking state.
             controller.clearTarget();
-            hasLock = false;
-            missingFrames = 0;
+			targetLock.reset();
         }
 
         // Show windows
