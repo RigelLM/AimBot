@@ -18,30 +18,30 @@
     "tick_hz": 240,
     "deadzone_px": 2,
     "auto_click": true,
-    "click_dist_px": 16.0,
-    "dwell_ms": 150,
-    "cooldown_ms": 150,
-    "min_sleep_us": 500,
+    "click_dist_px": 30.0,
+    "dwell_ms": 10,
+    "cooldown_ms": 10,
+    "min_sleep_us": 250,
     "pid": {
       "x": {
-        "kp": 0.28,
+        "kp": 0.35,
         "ki": 0.0,
-        "kd": 0.07,
-        "outMin": -45,
-        "outMax": 45,
+        "kd": 0.18,
+        "outMin": -100,
+        "outMax": 100,
         "iMin": -2000,
         "iMax": 2000,
-        "dAlpha": 0.85
+        "dAlpha": 1.0
       },
       "y": {
-        "kp": 0.28,
+        "kp": 0.35,
         "ki": 0.0,
-        "kd": 0.07,
-        "outMin": -45,
-        "outMax": 45,
+        "kd": 0.18,
+        "outMin": -100,
+        "outMax": 100,
         "iMin": -2000,
         "iMax": 2000,
-        "dAlpha": 0.85
+        "dAlpha": 1.0
       }
     }
   },

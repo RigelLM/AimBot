@@ -52,7 +52,18 @@ void CursorAssistController::stop() {
 
 void CursorAssistController::setEnabled(bool en) {
     // Enable/disable the control action.
-    enabled_.store(en, std::memory_order_relaxed);
+    bool wasEnabled = enabled_.exchange(en, std::memory_order_relaxed);
+
+    if (en && !wasEnabled) {
+        std::lock_guard<std::mutex> lk(mtx_);
+
+        // 1) reset PID state(prevent setpoint kick)
+        cfg_.pid.reset();
+
+        // 2) reset dwell click timer
+        inRangeSince_ = {};
+        lastClick_ = {};
+    }
 
     // Wake the worker so state changes take effect immediately.
     cv_.notify_all();
@@ -65,7 +76,9 @@ void CursorAssistController::updateConfig(const CursorAssistConfig& cfg) {
         cfg_ = cfg;
 
         // Reset PID internal state to avoid carrying over integral/derivative memory.
-        cfg_.pid.reset();
+        // cfg_.pid.reset();
+        pidState_ = cfg_.pid;
+        pidState_.reset();
     }
 
     // Wake worker so new config is used immediately.
@@ -82,6 +95,18 @@ void CursorAssistController::setTarget(const CursorPoint& p) {
     {
         // Set current target under lock.
         std::lock_guard<std::mutex> lk(mtx_);
+
+        if (target_.has_value()) {
+            int dx = p.x - target_->x;
+            int dy = p.y - target_->y;
+            if (dx * dx + dy * dy > 100 * 100) {
+                pidState_.reset();
+            }
+        }
+        else {
+            pidState_.reset();
+        }
+
         target_ = p;
     }
 
@@ -153,8 +178,15 @@ void CursorAssistController::threadMain() {
         if (std::abs(ey) < cfgLocal.deadzone_px) ey = 0;
 
         // PID output: desired relative movement per tick (in pixels).
-        double ux = cfgLocal.pid.x.step((double)ex, dt);
-        double uy = cfgLocal.pid.y.step((double)ey, dt);
+        /*double ux = cfgLocal.pid.x.step((double)ex, dt);
+        double uy = cfgLocal.pid.y.step((double)ey, dt);*/
+        double ux, uy;
+        {
+            std::lock_guard<std::mutex> lk(mtx_);
+            // 注意：pidState_ 保存了状态，必须在锁内更新
+            ux = pidState_.x.step((double)ex, dt);
+            uy = pidState_.y.step((double)ey, dt);
+        }
 
         // Round to integer pixel deltas.
         int dx = (int)std::lround(ux);

@@ -92,6 +92,8 @@ private:
     // Current configuration (PID, timing, click settings).
     CursorAssistConfig cfg_;                // guarded by mtx_
 
+    PID2D pidState_;
+
     // Worker thread handle.
     std::thread worker_;
 
