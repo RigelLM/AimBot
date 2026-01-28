@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.20)
+﻿cmake_minimum_required(VERSION 3.20)
 project(aimbot LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
@@ -35,12 +35,47 @@ if (WIN32)
   target_link_libraries(aimbot_core PUBLIC d3d11 dxgi)
 endif()
 
+# ---------------- ImGui (Win32 + DX11) ----------------
+add_library(imgui STATIC
+  "${CMAKE_SOURCE_DIR}/vendor/imgui/imgui.cpp"
+  "${CMAKE_SOURCE_DIR}/vendor/imgui/imgui_draw.cpp"
+  "${CMAKE_SOURCE_DIR}/vendor/imgui/imgui_tables.cpp"
+  "${CMAKE_SOURCE_DIR}/vendor/imgui/imgui_widgets.cpp"
+  "${CMAKE_SOURCE_DIR}/vendor/imgui/imgui_demo.cpp"
+  "${CMAKE_SOURCE_DIR}/vendor/imgui/backends/imgui_impl_win32.cpp"
+  "${CMAKE_SOURCE_DIR}/vendor/imgui/backends/imgui_impl_dx11.cpp"
+)
+
+target_include_directories(imgui PUBLIC
+  "${CMAKE_SOURCE_DIR}/vendor/imgui"
+  "${CMAKE_SOURCE_DIR}/vendor/imgui/backends"
+)
+
+# ImGui DX11/Win32
+if (WIN32)
+  target_link_libraries(imgui PUBLIC d3d11 dxgi imm32)
+endif()
+
+# ---------------- GUI library: ImGui app shell ----------------
+add_library(aimbot_gui STATIC
+  "${CMAKE_SOURCE_DIR}/src/gui/ImGuiApp.cpp"
+)
+
+target_include_directories(aimbot_gui PUBLIC
+  "${CMAKE_SOURCE_DIR}/include"
+)
+
+target_link_libraries(aimbot_gui PUBLIC
+  imgui
+  aimbot_core
+)
+
 # ---------------- App executable: main only ----------------
 add_executable(${PROJECT_NAME}
   "${CMAKE_SOURCE_DIR}/src/app/main.cpp"
 )
 
-target_link_libraries(${PROJECT_NAME} PRIVATE aimbot_core)
+target_link_libraries(${PROJECT_NAME} PRIVATE aimbot_gui)
 
 # ---------------- Copy OpenCV DLLs ----------------
 function(copy_opencv_dlls_to_target target_name)
