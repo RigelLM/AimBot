@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "ITargetSelector.h"
 
 namespace aimbot::lock
