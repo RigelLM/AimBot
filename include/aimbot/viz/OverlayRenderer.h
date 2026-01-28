@@ -7,8 +7,8 @@
 // - Overlay simple performance metrics (latency, FPS)
 //
 // All drawing is done in-place on a BGR OpenCV image (cv::Mat).
-
 #pragma once
+
 #include <vector>
 #include <string>
 

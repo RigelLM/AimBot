@@ -4,10 +4,11 @@
 #include <opencv2/opencv.hpp>
 
 #include "aimbot/capture/DxgiDesktopDuplicationSource.h"
-#include "aimbot/vision/HsvConfig.h"
 #include "aimbot/vision/HsvMasker.h"
 #include "aimbot/vision/ContourDetector.h"
 #include "aimbot/viz/OverlayRenderer.h"
+
+#include "aimbot/app/LoadAppConfig.h"
 
 int main() {
     // Step1: Frame source (DXGI Desktop Duplication)

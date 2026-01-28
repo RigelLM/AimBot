@@ -10,6 +10,8 @@
 #include <cstdint>
 #include <iostream>
 
+#include "aimbot/app/LoadAppConfig.h"
+#include "aimbot/cursor/PID.h"
 #include "aimbot/cursor/CursorAssist.h"
 #include "aimbot/cursor/Win32CursorBackend.h"
 
