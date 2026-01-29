@@ -60,6 +60,7 @@ endif()
 add_library(aimbot_gui STATIC
   "${CMAKE_SOURCE_DIR}/src/gui/ImGuiApp.cpp"
   "${CMAKE_SOURCE_DIR}/src/gui/Dx11MatTexture.cpp"
+  "${CMAKE_SOURCE_DIR}/src/gui/AppModel.cpp"
 )
 
 target_include_directories(aimbot_gui PUBLIC
@@ -70,6 +71,8 @@ target_link_libraries(aimbot_gui PUBLIC
   imgui
   aimbot_core
 )
+
+target_compile_definitions(aimbot_gui PRIVATE WIN32_LEAN_AND_MEAN NOMINMAX)
 
 # ---------------- App executable: main only ----------------
 add_executable(${PROJECT_NAME}
