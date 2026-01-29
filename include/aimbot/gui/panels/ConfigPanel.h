@@ -64,7 +64,7 @@ namespace aimbot::gui::panels {
             changed |= DragDouble("iMax", &a.iMax, 1.0, 0.0, 1e7, "%.1f");
 
             ImGui::SeparatorText("Derivative filter");
-            changed |= SliderDouble("dAlpha", &a.dAlpha, 0.0, 0.999, "%.3f");
+            changed |= SliderDouble("dAlpha", &a.dAlpha, 0.0, 5.0, "%.3f");
 
             ImGui::TreePop();
         }
@@ -172,23 +172,23 @@ namespace aimbot::gui::panels {
         if (ImGui::CollapsingHeader("Target Lock", ImGuiTreeNodeFlags_DefaultOpen))
         {
             changed |= ImGui::DragFloat("match_radius", &uiCfg.lock.match_radius, 0.5f, 0.0f, 2000.0f, "%.1f");
-            changed |= ImGui::DragInt("lost_frames_to_unlock", &uiCfg.lock.lost_frames_to_unlock, 1.0f, 0, 300);
+            changed |= ImGui::DragInt("lost_frames_to_unlock", &uiCfg.lock.lost_frames_to_unlock, 1.0f, 0, 500);
         }
 
         // ---------------- Cursor Assist ----------------
         if (ImGui::CollapsingHeader("Cursor Assist", ImGuiTreeNodeFlags_DefaultOpen))
         {
-            changed |= ImGui::DragInt("tick_hz", &uiCfg.cursor.tick_hz, 1.0f, 1, 2000);
+            changed |= ImGui::DragInt("tick_hz", &uiCfg.cursor.tick_hz, 1.0f, 1, 1000);
             changed |= ImGui::DragInt("deadzone_px", &uiCfg.cursor.deadzone_px, 1.0f, 0, 100);
 
             ImGui::SeparatorText("Auto click (dwell)");
             changed |= ImGui::Checkbox("auto_click", &uiCfg.cursor.auto_click);
             changed |= DragDouble("click_dist_px", &uiCfg.cursor.click_dist_px, 0.5, 0.0, 500.0, "%.1f");
-            changed |= ImGui::DragInt("dwell_ms", &uiCfg.cursor.dwell_ms, 1.0f, 0, 10000);
-            changed |= ImGui::DragInt("cooldown_ms", &uiCfg.cursor.cooldown_ms, 1.0f, 0, 60000);
+            changed |= ImGui::DragInt("dwell_ms", &uiCfg.cursor.dwell_ms, 1.0f, 0, 1000);
+            changed |= ImGui::DragInt("cooldown_ms", &uiCfg.cursor.cooldown_ms, 1.0f, 0, 5000);
 
             ImGui::SeparatorText("Worker loop");
-            changed |= ImGui::DragInt("min_sleep_us", &uiCfg.cursor.min_sleep_us, 10.0f, 0, 2000000);
+            changed |= ImGui::DragInt("min_sleep_us", &uiCfg.cursor.min_sleep_us, 10.0f, 0, 5000);
 
             ImGui::SeparatorText("PID");
             changed |= EditPIDAxis("PID X", uiCfg.cursor.pid.x);
