@@ -10,9 +10,38 @@ namespace aimbot::input {
 
     enum class Key : uint16_t {
         Unknown = 0,
+
+        // --- Common ---
         Escape,
-        Q, E,
-        // TODO: extend keyboard codes(A-Z, 0-9, F1..F12, etc.)
+        Enter,
+        Tab,
+        Space,
+        Backspace,
+        Delete,
+        Insert,
+
+        // --- Modifiers ---
+        LShift, RShift,
+        LCtrl, RCtrl,
+        LAlt, RAlt,
+        CapsLock,
+
+        // --- Navigation ---
+        Up, Down, Left, Right,
+        Home, End,
+        PageUp, PageDown,
+
+        // --- Function keys ---
+        F1, F2, F3, F4, F5, F6,
+        F7, F8, F9, F10, F11, F12,
+
+        // --- Digits ---
+        D0, D1, D2, D3, D4, D5, D6, D7, D8, D9,
+
+        // --- Letters ---
+        A, B, C, D, E, F, G, H, I, J,
+        K, L, M, N, O, P, Q, R, S, T,
+        U, V, W, X, Y, Z,
     };
 
     enum class MouseButton : uint8_t { Left, Right, Middle, X1, X2 };
