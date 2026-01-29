@@ -13,7 +13,7 @@ namespace aimbot::input {
     enum class MouseWheelAxis : uint8_t { Vertical, Horizontal };
 
     struct ButtonBinding {
-        DeviceType device{};
+        DeviceType device{DeviceType::Keyboard};
         TriggerType trigger{ TriggerType::Pressed };
         Key key{ Key::Unknown };
         MouseButton mouse{ MouseButton::Left };
@@ -23,7 +23,7 @@ namespace aimbot::input {
 
     struct Axis1DBinding {
         // TODO: implement Axis1D
-        DeviceType device{};
+        DeviceType device{DeviceType::Mouse};
         int padIndex{ 0 };
         std::optional<MouseWheelAxis> wheel;
         float deadzone{ 0.0f };
@@ -32,7 +32,7 @@ namespace aimbot::input {
 
     struct Axis2DBinding {
         // TODO: implement Axis2D
-        DeviceType device{};
+        DeviceType device{DeviceType::Gamepad};
         int padIndex{ 0 };
         std::optional<GamepadStick> stick;
         float deadzone{ 0.15f };
@@ -57,7 +57,11 @@ namespace aimbot::input {
     };
 
     struct InputConfig {
-        std::vector<Binding> bindings;
+        std::vector<Binding> bindings = {
+            Binding{ "quit", BindingType::Button, ButtonBinding{DeviceType::Keyboard, TriggerType::Pressed, Key::Escape} },
+            Binding{ "assist_toggle", BindingType::Button, ButtonBinding{DeviceType::Keyboard, TriggerType::Pressed, Key::Q} },
+            Binding{ "assist_disable", BindingType::Button, ButtonBinding{DeviceType::Keyboard, TriggerType::Pressed, Key::E} },
+		};
     };
 
 } // namespace
