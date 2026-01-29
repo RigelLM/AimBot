@@ -38,6 +38,7 @@
 #include <opencv2/core.hpp>
 
 #include "aimbot/app/AppConfig.h"
+#include "aimbot/input/InputConfigJson.h"
 
 // Parse a JSON array of length >= 3 into cv::Scalar(a0, a1, a2).
 // If the JSON value is not a valid array, return the provided default.
@@ -144,4 +145,5 @@ inline void from_json(const nlohmann::json& j, AppConfig& c) {
     if (j.contains("lock"))    c.lock = j["lock"].get<LockConfig>();
 	if (j.contains("cursor"))  c.cursor = j["cursor"].get<CursorAssistConfig>();
 	if (j.contains("overlay")) c.overlay = j["overlay"].get<OverlayStyle>();
+    if (j.contains("input"))   c.input = j["input"].get<aimbot::input::InputConfig>();
 }

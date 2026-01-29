@@ -59,5 +59,27 @@
     "showConfidence": false,
     "showArea": false,
     "showIndex": false
+  },
+  "input": {
+    "bindings": [
+      {
+        "action": "quit",
+        "device": "keyboard",
+        "key": "ESC",
+        "trigger": "pressed"
+      },
+      {
+        "action": "assist_toggle",
+        "device": "keyboard",
+        "key": "Q",
+        "trigger": "pressed"
+      },
+      {
+        "action": "assist_disable",
+        "device": "keyboard",
+        "key": "E",
+        "trigger": "pressed"
+      }
+    ]
   }
 }

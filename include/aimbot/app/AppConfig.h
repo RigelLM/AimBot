@@ -18,6 +18,7 @@
 #include <opencv2/core.hpp>
 
 #include "aimbot/cursor/PID.h"
+#include "aimbot/input/InputConfig.h"
 
 // ------------------------------ CaptureConfig ------------------------------
 // Coordinate mapping configuration.
@@ -138,4 +139,5 @@ struct AppConfig {
     LockConfig lock;
 	CursorAssistConfig cursor;
     OverlayStyle overlay;
+	aimbot::input::InputConfig input;
 };
