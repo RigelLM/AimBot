@@ -41,13 +41,75 @@ namespace aimbot::input {
         return BindingType::Button;
     }
 
-	// TODO: Extend these parsers to cover more keys/buttons
-    // ---- minimal key maps ----
+    // ---- key maps ----
     inline Key parseKey(const std::string& s) {
-        auto t = toLower(s);
-        if (t == "esc" || t == "escape") return Key::Escape;
-        if (t == "q") return Key::Q;
-        if (t == "e") return Key::E;
+		using aimbot::input::Key;
+
+		auto t = toLower(s);
+		if (t.empty()) return Key::Unknown;
+
+        // 1) Single character: letters / digits
+        if (t.size() == 1) {
+            const char c = t[0];
+            if (c >= 'a' && c <= 'z') {
+                return static_cast<Key>(static_cast<uint16_t>(Key::A) + (c - 'a'));
+            }
+            if (c >= '0' && c <= '9') {
+                return static_cast<Key>(static_cast<uint16_t>(Key::D0) + (c - '0'));
+            }
+        }
+
+        // 2) Function keys: f1..f12
+        if (t[0] == 'f' && t.size() <= 3) {
+            int n = 0;
+            for (size_t i = 1; i < t.size(); ++i) {
+                if (!std::isdigit(static_cast<unsigned char>(t[i]))) { n = 0; break; }
+                n = n * 10 + (t[i] - '0');
+            }
+            if (n >= 1 && n <= 12) {
+                return static_cast<Key>(static_cast<uint16_t>(Key::F1) + (n - 1));
+            }
+        }
+
+        // 3) Named keys / aliases
+        static const std::unordered_map<std::string, Key> kMap = {
+            // Escape
+            {"esc", Key::Escape}, {"escape", Key::Escape},
+
+            // Enter / Tab / Space / Backspace
+            {"enter", Key::Enter}, {"return", Key::Enter},
+            {"tab", Key::Tab},
+            {"space", Key::Space}, {"spacebar", Key::Space},
+            {"backspace", Key::Backspace}, {"bs", Key::Backspace},
+
+            // Insert/Delete
+            {"insert", Key::Insert}, {"ins", Key::Insert},
+            {"delete", Key::Delete}, {"del", Key::Delete},
+
+            // Modifiers (explicit)
+			// Shift/ Ctrl / Alt are mapped to left versions by default
+            {"lshift", Key::LShift}, {"rshift", Key::RShift}, {"shift", Key::LShift},
+            {"lctrl", Key::LCtrl},   {"rctrl", Key::RCtrl},   {"ctrl", Key::LCtrl}, {"control", Key::LCtrl},
+            {"lalt", Key::LAlt},     {"ralt", Key::RAlt},     {"alt", Key::LAlt},
+
+            {"capslock", Key::CapsLock}, {"caps", Key::CapsLock},
+
+            // Arrows
+            {"up", Key::Up}, {"arrowup", Key::Up},
+            {"down", Key::Down}, {"arrowdown", Key::Down},
+            {"left", Key::Left}, {"arrowleft", Key::Left},
+            {"right", Key::Right}, {"arrowright", Key::Right},
+
+            // Navigation
+            {"home", Key::Home},
+            {"end", Key::End},
+            {"pageup", Key::PageUp}, {"pgup", Key::PageUp},
+            {"pagedown", Key::PageDown}, {"pgdn", Key::PageDown},
+        };
+
+        auto it = kMap.find(t);
+        if (it != kMap.end()) return it->second;
+
         return Key::Unknown;
     }
 

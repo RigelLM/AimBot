@@ -43,11 +43,58 @@ namespace aimbot::input {
 
     private:
         int mapKeyToVK(Key k) const {
+			using K = aimbot::input::Key;
+
+            // ---- Ranges first (compact) ----
+            // Letters A-Z
+            if (k >= K::A && k <= K::Z) {
+                const int off = static_cast<int>(k) - static_cast<int>(K::A);
+                return 'A' + off; // VK for letters is ASCII 'A'..'Z'
+            }
+
+            // Digits 0-9
+            if (k >= K::D0 && k <= K::D9) {
+                const int off = static_cast<int>(k) - static_cast<int>(K::D0);
+                return '0' + off; // '0'..'9'
+            }
+
+            // Function keys F1-F12
+            if (k >= K::F1 && k <= K::F12) {
+                const int off = static_cast<int>(k) - static_cast<int>(K::F1);
+                return VK_F1 + off; // VK_F1..VK_F12 are contiguous
+            }
+
+            // ---- Named keys / non-contiguous ----
             switch (k) {
-            case Key::Escape: return VK_ESCAPE;
-            case Key::Q:      return 'Q';
-            case Key::E:      return 'E';
-            default:          return 0;
+            case K::Escape:    return VK_ESCAPE;
+            case K::Enter:     return VK_RETURN;
+            case K::Tab:       return VK_TAB;
+            case K::Space:     return VK_SPACE;
+            case K::Backspace: return VK_BACK;
+
+            case K::Insert:    return VK_INSERT;
+            case K::Delete:    return VK_DELETE;
+
+            case K::LShift:    return VK_LSHIFT;
+            case K::RShift:    return VK_RSHIFT;
+            case K::LCtrl:     return VK_LCONTROL;
+            case K::RCtrl:     return VK_RCONTROL;
+            case K::LAlt:      return VK_LMENU;   // Alt == Menu
+            case K::RAlt:      return VK_RMENU;
+
+            case K::CapsLock:  return VK_CAPITAL;
+
+            case K::Up:        return VK_UP;
+            case K::Down:      return VK_DOWN;
+            case K::Left:      return VK_LEFT;
+            case K::Right:     return VK_RIGHT;
+
+            case K::Home:      return VK_HOME;
+            case K::End:       return VK_END;
+            case K::PageUp:    return VK_PRIOR;   // PageUp
+            case K::PageDown:  return VK_NEXT;    // PageDown
+
+            default:           return 0;
             }
         }
 
