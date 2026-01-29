@@ -8,8 +8,9 @@
 // Note: Uses SendInput (recommended modern Win32 input injection API).
 
 #pragma once
-#include "CursorAssist.h"
 #include <Windows.h>
+
+#include "CursorAssist.h"
 
 class Win32CursorBackend : public ICursorBackend {
 public:
