@@ -15,7 +15,6 @@
 #include "aimbot/app/LoadAppConfig.h"
 
 #include "aimbot/gui/AppModel.h"
-#include "aimbot/gui/panels/IPanel.h"
 #include "aimbot/gui/panels/ControlPanel.h"
 #include "aimbot/gui/panels/ViewsPanel.h"
 #include "aimbot/gui/panels/ConfigPanel.h"
@@ -175,7 +174,7 @@ namespace aimbot::gui {
         // 4) Initialize ImGui
         IMGUI_CHECKVERSION();
         ImGui::CreateContext();
-        ImGuiIO& io = ImGui::GetIO(); (void)io;
+        ImGuiIO& io = ImGui::GetIO();
         io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
         // io.ConfigFlags |= ImGuiConfigFlags_DockingEnable; // For Docking
 
