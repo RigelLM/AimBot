@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <opencv2/core.hpp>
+#include <opencv2/imgproc.hpp>
 
 #include "aimbot/gui/panels/IPanel.h"
 #include "aimbot/gui/AppModel.h"
@@ -70,6 +71,73 @@ namespace aimbot::gui::panels {
         return changed;
     }
 
+    static inline ImVec4 HsvOpenCvToImVec4(int H, int S, int V)
+    {
+        H = std::clamp(H, 0, 179);
+        S = std::clamp(S, 0, 255);
+        V = std::clamp(V, 0, 255);
+
+        // OpenCV uses BGR in cv::Mat by default
+        cv::Mat3b hsv(1, 1, cv::Vec3b((uchar)H, (uchar)S, (uchar)V));
+        cv::Mat3b bgr;
+        cv::cvtColor(hsv, bgr, cv::COLOR_HSV2BGR);
+
+        cv::Vec3b c = bgr(0, 0);
+        float r = c[2] / 255.0f;
+        float g = c[1] / 255.0f;
+        float b = c[0] / 255.0f;
+        return ImVec4(r, g, b, 1.0f);
+    }
+
+    static inline void DrawColorSwatch(const char* label, const ImVec4& col, const ImVec2& size = ImVec2(22, 22))
+    {
+        ImGui::ColorButton(label, col,
+            ImGuiColorEditFlags_NoTooltip | ImGuiColorEditFlags_NoDragDrop,
+            size);
+    }
+
+    static inline void DrawHsvRangePreview(const cv::Scalar& lower, const cv::Scalar& upper)
+    {
+        int lh = (int)lower[0], ls = (int)lower[1], lv = (int)lower[2];
+        int uh = (int)upper[0], us = (int)upper[1], uv = (int)upper[2];
+
+        bool wrap = (lh > uh);
+
+        // 1) threshold preview (uses actual S/V)
+        ImVec4 colLower = HsvOpenCvToImVec4(lh, ls, lv);
+        ImVec4 colUpper = HsvOpenCvToImVec4(uh, us, uv);
+
+        // 2) hue-only preview (force vivid)
+        ImVec4 hueLower = HsvOpenCvToImVec4(lh, 255, 255);
+        ImVec4 hueUpper = HsvOpenCvToImVec4(uh, 255, 255);
+
+        ImGui::SeparatorText("HSV Preview");
+
+        ImGui::Text("Hue range: %d -> %d %s", lh, uh, wrap ? "(wrap)" : "");
+        ImGui::SameLine();
+        ImGui::TextDisabled("(OpenCV H:0..179)");
+
+        ImGui::TextUnformatted("Hue-only:");
+        ImGui::SameLine();
+        DrawColorSwatch("##hueL", hueLower);
+        ImGui::SameLine();
+        ImGui::TextUnformatted("...");
+        ImGui::SameLine();
+        DrawColorSwatch("##hueU", hueUpper);
+
+        ImGui::TextUnformatted("Threshold (actual S/V):");
+        ImGui::SameLine();
+        DrawColorSwatch("##thrL", colLower);
+        ImGui::SameLine();
+        ImGui::TextUnformatted("...");
+        ImGui::SameLine();
+        DrawColorSwatch("##thrU", colUpper);
+
+        if (wrap) {
+            ImGui::TextColored(ImVec4(1, 0.6f, 0.2f, 1), "Wrap-around active: range is [0..%d] U [%d..179]", uh, lh);
+        }
+    }
+
     static inline bool DrawConfigUI(AppConfig& uiCfg)
     {
         bool changed = false;
@@ -90,6 +158,8 @@ namespace aimbot::gui::panels {
             // Lower / Upper
             changed |= EditHsvScalar3("lower (H,S,V)", uiCfg.hsv.lower, 0, 179, 0, 255, 0, 255);
             changed |= EditHsvScalar3("upper (H,S,V)", uiCfg.hsv.upper, 0, 179, 0, 255, 0, 255);
+
+			DrawHsvRangePreview(uiCfg.hsv.lower, uiCfg.hsv.upper);
 
             ImGui::Separator();
             changed |= ImGui::DragInt("minArea", &uiCfg.hsv.minArea, 10.0f, 0, 1000000);

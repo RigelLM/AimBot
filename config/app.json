@@ -8,8 +8,8 @@
     "lost_frames_to_unlock": 5
   },
   "hsv": {
-    "lower": [ 82, 199, 118 ],
-    "upper": [ 97, 255, 255 ],
+    "lower": [ 135, 130, 128 ],
+    "upper": [ 160, 255, 255 ],
     "minArea": 1600,
     "morphOpen": 0,
     "morphClose": 0

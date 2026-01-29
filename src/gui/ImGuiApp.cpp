@@ -223,7 +223,7 @@ namespace aimbot::gui {
             for (auto& p : panels) p->draw(model);
 
             ImGuiIO& io = ImGui::GetIO();
-            if (!io.WantCaptureKeyboard) {
+            if (!io.WantTextInput) {
                 if (keyPressedEdge(VK_ESCAPE, prevEsc)) PostQuitMessage(0);
                 if (keyPressedEdge('Q', prevQ)) model.setAssistEnabled(true);
                 if (keyPressedEdge('E', prevE)) model.setAssistEnabled(false);
