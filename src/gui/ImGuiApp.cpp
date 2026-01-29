@@ -176,7 +176,8 @@ namespace aimbot::gui {
         ImGui::CreateContext();
         ImGuiIO& io = ImGui::GetIO();
         io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
-        // io.ConfigFlags |= ImGuiConfigFlags_DockingEnable; // For Docking
+        io.ConfigFlags |= ImGuiConfigFlags_DockingEnable; // For Docking
+		// io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable; // For Multi-Viewport
 
         ImGui::StyleColorsDark();
 
@@ -217,13 +218,51 @@ namespace aimbot::gui {
             ImGui_ImplWin32_NewFrame();
             ImGui::NewFrame();
 
+            // --------- DockSpace host window ---------
+            if (io.ConfigFlags & ImGuiConfigFlags_DockingEnable)
+            {
+                ImGuiWindowFlags host_window_flags =
+                    ImGuiWindowFlags_NoDocking |
+                    ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse |
+                    ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove |
+                    ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus |
+                    ImGuiWindowFlags_MenuBar;
+
+                const ImGuiViewport* viewport = ImGui::GetMainViewport();
+                ImGui::SetNextWindowPos(viewport->WorkPos);
+                ImGui::SetNextWindowSize(viewport->WorkSize);
+                ImGui::SetNextWindowViewport(viewport->ID);
+
+                ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
+                ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+                ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
+
+                ImGui::Begin("DockSpaceHost", nullptr, host_window_flags);
+
+                ImGui::PopStyleVar(3);
+
+                // 可选：菜单栏
+                if (ImGui::BeginMenuBar()) {
+                    if (ImGui::BeginMenu("Window")) {
+                        // 这里未来可以做：勾选显示/隐藏各 panel
+                        ImGui::EndMenu();
+                    }
+                    ImGui::EndMenuBar();
+                }
+
+                ImGuiID dockspace_id = ImGui::GetID("MyDockSpace");
+                ImGuiDockNodeFlags dock_flags = ImGuiDockNodeFlags_PassthruCentralNode;
+                ImGui::DockSpace(dockspace_id, ImVec2(0, 0), dock_flags);
+
+                ImGui::End();
+            }
+
             // --------- UI ---------
 			model.tick(gctx);
 
             for (auto& p : panels) p->draw(model);
 
-            ImGuiIO& io = ImGui::GetIO();
-            if (!io.WantCaptureKeyboard) {
+            if (!io.WantTextInput) {
                 if (keyPressedEdge(VK_ESCAPE, prevEsc)) PostQuitMessage(0);
                 if (keyPressedEdge('Q', prevQ)) model.setAssistEnabled(true);
                 if (keyPressedEdge('E', prevE)) model.setAssistEnabled(false);
@@ -237,6 +276,12 @@ namespace aimbot::gui {
             g_pd3dDeviceContext->OMSetRenderTargets(1, &g_mainRenderTargetView, nullptr);
             g_pd3dDeviceContext->ClearRenderTargetView(g_mainRenderTargetView, clear_color);
             ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
+
+            // For Multi-Viewport
+            /*if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable) {
+                ImGui::UpdatePlatformWindows();
+                ImGui::RenderPlatformWindowsDefault();
+            }*/
 
             g_pSwapChain->Present(1, 0); // vsync
         }
